@@ -120,11 +120,37 @@ jobs:
         with:
           path: artifacts
 
-      - name: List files for debugging
-        run: find artifacts -type f
+      - name: Extract artifacts and prepare release files
+        run: |
+          # Create release directory
+          mkdir -p release-files
+          
+          # Process each artifact directory
+          for artifact_dir in artifacts/*/; do
+            if [ -d "$artifact_dir" ]; then
+              # Extract any zip files in the artifact directory
+              find "$artifact_dir" -name "*.zip" -exec unzip -o {} -d "$artifact_dir" \;
+              find "$artifact_dir" -name "*.zip" -delete
+              
+              # Copy .deb files directly to release-files
+              find "$artifact_dir" -name "*.deb" -exec cp {} release-files/ \;
+              
+              # Create zip archives for non-deb files
+              for file in "$artifact_dir"*; do
+                if [ -f "$file" ] && [[ ! "$file" == *.deb ]]; then
+                  filename=$(basename "$file")
+                  zip "release-files/${filename%.*}.zip" "$file"
+                fi
+              done
+            fi
+          done
+          
+          # List final release files
+          echo "Release files:"
+          ls -la release-files/
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: artifacts/**/*
+          files: release-files/*
           generate_release_notes: true
