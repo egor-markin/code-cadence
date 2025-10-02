@@ -35,7 +35,7 @@ jobs:
         run: go get .
 
       - name: Build
-        run: go build -v -o code-cadence ./...
+        run: go build -v -o code-cadence .
 
       - name: Test
         run: go test -v ./...
