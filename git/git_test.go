@@ -254,7 +254,7 @@ func TestGetCurrentBranch(t *testing.T) {
 
 	cmd = exec.Command("git", "commit", "-m", "Initial commit")
 	cmd.Dir = tempDir
-	cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=Test", "GIT_AUTHOR_EMAIL=test@example.com")
+	cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=Test", "GIT_AUTHOR_EMAIL=test@example.com", "GIT_COMMITTER_NAME=Test", "GIT_COMMITTER_EMAIL=test@example.com")
 	output, err = cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("Failed to commit: %v\nOutput: %s", err, string(output))
@@ -298,7 +298,7 @@ func TestGetCurrentBranchDetachedHead(t *testing.T) {
 
 	cmd = exec.Command("git", "commit", "-m", "Initial commit")
 	cmd.Dir = tempDir
-	cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=Test", "GIT_AUTHOR_EMAIL=test@example.com")
+	cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=Test", "GIT_AUTHOR_EMAIL=test@example.com", "GIT_COMMITTER_NAME=Test", "GIT_COMMITTER_EMAIL=test@example.com")
 	output, err = cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("Failed to commit: %v\nOutput: %s", err, string(output))
@@ -380,7 +380,7 @@ func TestGetCommitMessage(t *testing.T) {
 	commitMessage := "Test commit message\n\nThis is a detailed description."
 	cmd = exec.Command("git", "commit", "-m", commitMessage)
 	cmd.Dir = tempDir
-	cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=Test", "GIT_AUTHOR_EMAIL=test@example.com")
+	cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=Test", "GIT_AUTHOR_EMAIL=test@example.com", "GIT_COMMITTER_NAME=Test", "GIT_COMMITTER_EMAIL=test@example.com")
 	output, err = cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("Failed to commit: %v\nOutput: %s", err, string(output))
@@ -433,7 +433,7 @@ func TestGetParentCommit(t *testing.T) {
 
 	cmd = exec.Command("git", "commit", "-m", "First commit")
 	cmd.Dir = tempDir
-	cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=Test", "GIT_AUTHOR_EMAIL=test@example.com")
+	cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=Test", "GIT_AUTHOR_EMAIL=test@example.com", "GIT_COMMITTER_NAME=Test", "GIT_COMMITTER_EMAIL=test@example.com")
 	output, err = cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("Failed to commit: %v\nOutput: %s", err, string(output))
@@ -463,7 +463,7 @@ func TestGetParentCommit(t *testing.T) {
 
 	cmd = exec.Command("git", "commit", "-m", "Second commit")
 	cmd.Dir = tempDir
-	cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=Test", "GIT_AUTHOR_EMAIL=test@example.com")
+	cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=Test", "GIT_AUTHOR_EMAIL=test@example.com", "GIT_COMMITTER_NAME=Test", "GIT_COMMITTER_EMAIL=test@example.com")
 	output, err = cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("Failed to commit: %v\nOutput: %s", err, string(output))
@@ -516,7 +516,7 @@ func TestGetUnpushedCommits(t *testing.T) {
 
 	cmd = exec.Command("git", "commit", "-m", "First commit")
 	cmd.Dir = tempDir
-	cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=Test", "GIT_AUTHOR_EMAIL=test@example.com")
+	cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=Test", "GIT_AUTHOR_EMAIL=test@example.com", "GIT_COMMITTER_NAME=Test", "GIT_COMMITTER_EMAIL=test@example.com")
 	output, err = cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("Failed to commit: %v\nOutput: %s", err, string(output))
@@ -537,7 +537,7 @@ func TestGetUnpushedCommits(t *testing.T) {
 
 	cmd = exec.Command("git", "commit", "-m", "Second commit")
 	cmd.Dir = tempDir
-	cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=Test", "GIT_AUTHOR_EMAIL=test@example.com")
+	cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=Test", "GIT_AUTHOR_EMAIL=test@example.com", "GIT_COMMITTER_NAME=Test", "GIT_COMMITTER_EMAIL=test@example.com")
 	output, err = cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("Failed to commit: %v\nOutput: %s", err, string(output))
