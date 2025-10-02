@@ -109,60 +109,27 @@ jobs:
           path: dist/
           retention-days: 30
 
+      - name: Upload DEB to release
+        if: matrix.os == 'ubuntu-latest' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*.deb
+          generate_release_notes: false
+
   release:
     needs: build
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
 
     steps:
-      - name: Download all artifacts
+      - name: Download macOS artifacts
         uses: actions/download-artifact@5
         with:
+          name: code-cadence-macos-*
           path: artifacts
-
-      - name: Extract artifacts and prepare release files
-        run: |
-          # Create release directory
-          mkdir -p release-files
-          
-          echo "Artifacts structure:"
-          find artifacts -type f -name "*.zip" | head -10
-          
-          # Process each artifact directory
-          for artifact_dir in artifacts/*/; do
-            if [ -d "$artifact_dir" ]; then
-              echo "Processing artifact directory: $artifact_dir"
-              
-              # Find and extract the main artifact zip file
-              artifact_zip=$(find "$artifact_dir" -maxdepth 1 -name "*.zip" | head -1)
-              if [ -n "$artifact_zip" ]; then
-                echo "Extracting: $artifact_zip"
-                unzip -o "$artifact_zip" -d "$artifact_dir"
-                rm "$artifact_zip"
-              fi
-              
-              # Copy .deb files directly to release-files (no additional zipping)
-              find "$artifact_dir" -name "*.deb" -exec cp {} release-files/ \;
-              
-              # Create zip archives for non-deb files
-              for file in "$artifact_dir"*; do
-                if [ -f "$file" ] && [[ ! "$file" == *.deb ]]; then
-                  filename=$(basename "$file")
-                  echo "Zipping: $file -> release-files/${filename%.*}.zip"
-                  zip "release-files/${filename%.*}.zip" "$file"
-                fi
-              done
-            fi
-          done
-          
-          # List final release files
-          echo "Final release files:"
-          ls -la release-files/
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            release-files/*.deb
-            release-files/*.zip
+          files: artifacts/**/*
           generate_release_notes: true
