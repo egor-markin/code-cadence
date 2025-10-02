@@ -234,8 +234,9 @@ func TestGetCurrentBranch(t *testing.T) {
 	// Initialize git repository
 	cmd := exec.Command("git", "init")
 	cmd.Dir = tempDir
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to initialize git repository: %v", err)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to initialize git repository: %v\nOutput: %s", err, string(output))
 	}
 
 	// Create a test file and commit
@@ -246,15 +247,17 @@ func TestGetCurrentBranch(t *testing.T) {
 
 	cmd = exec.Command("git", "add", "test.txt")
 	cmd.Dir = tempDir
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to add file: %v", err)
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to add file: %v\nOutput: %s", err, string(output))
 	}
 
 	cmd = exec.Command("git", "commit", "-m", "Initial commit")
 	cmd.Dir = tempDir
 	cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=Test", "GIT_AUTHOR_EMAIL=test@example.com")
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to commit: %v", err)
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to commit: %v\nOutput: %s", err, string(output))
 	}
 
 	// Test getting current branch
@@ -275,8 +278,9 @@ func TestGetCurrentBranchDetachedHead(t *testing.T) {
 	// Initialize git repository
 	cmd := exec.Command("git", "init")
 	cmd.Dir = tempDir
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to initialize git repository: %v", err)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to initialize git repository: %v\nOutput: %s", err, string(output))
 	}
 
 	// Create a test file and commit
@@ -287,21 +291,23 @@ func TestGetCurrentBranchDetachedHead(t *testing.T) {
 
 	cmd = exec.Command("git", "add", "test.txt")
 	cmd.Dir = tempDir
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to add file: %v", err)
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to add file: %v\nOutput: %s", err, string(output))
 	}
 
 	cmd = exec.Command("git", "commit", "-m", "Initial commit")
 	cmd.Dir = tempDir
 	cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=Test", "GIT_AUTHOR_EMAIL=test@example.com")
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to commit: %v", err)
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to commit: %v\nOutput: %s", err, string(output))
 	}
 
 	// Get the commit hash and checkout to it (detached HEAD)
 	cmd = exec.Command("git", "rev-parse", "HEAD")
 	cmd.Dir = tempDir
-	output, err := cmd.Output()
+	output, err = cmd.Output()
 	if err != nil {
 		t.Fatalf("Failed to get commit hash: %v", err)
 	}
@@ -309,8 +315,9 @@ func TestGetCurrentBranchDetachedHead(t *testing.T) {
 
 	cmd = exec.Command("git", "checkout", commitHash)
 	cmd.Dir = tempDir
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to checkout commit: %v", err)
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to checkout commit: %v\nOutput: %s", err, string(output))
 	}
 
 	// Test getting current branch in detached HEAD state
@@ -327,8 +334,9 @@ func TestGetCurrentBranchNoCommits(t *testing.T) {
 	// Initialize git repository
 	cmd := exec.Command("git", "init")
 	cmd.Dir = tempDir
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to initialize git repository: %v", err)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to initialize git repository: %v\nOutput: %s", err, string(output))
 	}
 
 	// Test getting current branch with no commits
@@ -351,8 +359,9 @@ func TestGetCommitMessage(t *testing.T) {
 	// Initialize git repository
 	cmd := exec.Command("git", "init")
 	cmd.Dir = tempDir
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to initialize git repository: %v", err)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to initialize git repository: %v\nOutput: %s", err, string(output))
 	}
 
 	// Create a test file and commit
@@ -363,22 +372,24 @@ func TestGetCommitMessage(t *testing.T) {
 
 	cmd = exec.Command("git", "add", "test.txt")
 	cmd.Dir = tempDir
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to add file: %v", err)
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to add file: %v\nOutput: %s", err, string(output))
 	}
 
 	commitMessage := "Test commit message\n\nThis is a detailed description."
 	cmd = exec.Command("git", "commit", "-m", commitMessage)
 	cmd.Dir = tempDir
 	cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=Test", "GIT_AUTHOR_EMAIL=test@example.com")
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to commit: %v", err)
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to commit: %v\nOutput: %s", err, string(output))
 	}
 
 	// Get the commit hash
 	cmd = exec.Command("git", "rev-parse", "HEAD")
 	cmd.Dir = tempDir
-	output, err := cmd.Output()
+	output, err = cmd.Output()
 	if err != nil {
 		t.Fatalf("Failed to get commit hash: %v", err)
 	}
@@ -402,8 +413,9 @@ func TestGetParentCommit(t *testing.T) {
 	// Initialize git repository
 	cmd := exec.Command("git", "init")
 	cmd.Dir = tempDir
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to initialize git repository: %v", err)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to initialize git repository: %v\nOutput: %s", err, string(output))
 	}
 
 	// Create first commit
@@ -414,21 +426,23 @@ func TestGetParentCommit(t *testing.T) {
 
 	cmd = exec.Command("git", "add", "test1.txt")
 	cmd.Dir = tempDir
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to add file: %v", err)
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to add file: %v\nOutput: %s", err, string(output))
 	}
 
 	cmd = exec.Command("git", "commit", "-m", "First commit")
 	cmd.Dir = tempDir
 	cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=Test", "GIT_AUTHOR_EMAIL=test@example.com")
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to commit: %v", err)
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to commit: %v\nOutput: %s", err, string(output))
 	}
 
 	// Get first commit hash
 	cmd = exec.Command("git", "rev-parse", "HEAD")
 	cmd.Dir = tempDir
-	output, err := cmd.Output()
+	output, err = cmd.Output()
 	if err != nil {
 		t.Fatalf("Failed to get commit hash: %v", err)
 	}
@@ -442,15 +456,17 @@ func TestGetParentCommit(t *testing.T) {
 
 	cmd = exec.Command("git", "add", "test2.txt")
 	cmd.Dir = tempDir
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to add file: %v", err)
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to add file: %v\nOutput: %s", err, string(output))
 	}
 
 	cmd = exec.Command("git", "commit", "-m", "Second commit")
 	cmd.Dir = tempDir
 	cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=Test", "GIT_AUTHOR_EMAIL=test@example.com")
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to commit: %v", err)
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to commit: %v\nOutput: %s", err, string(output))
 	}
 
 	// Get second commit hash
@@ -480,8 +496,9 @@ func TestGetUnpushedCommits(t *testing.T) {
 	// Initialize git repository
 	cmd := exec.Command("git", "init")
 	cmd.Dir = tempDir
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to initialize git repository: %v", err)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to initialize git repository: %v\nOutput: %s", err, string(output))
 	}
 
 	// Create first commit
@@ -492,15 +509,17 @@ func TestGetUnpushedCommits(t *testing.T) {
 
 	cmd = exec.Command("git", "add", "test1.txt")
 	cmd.Dir = tempDir
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to add file: %v", err)
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to add file: %v\nOutput: %s", err, string(output))
 	}
 
 	cmd = exec.Command("git", "commit", "-m", "First commit")
 	cmd.Dir = tempDir
 	cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=Test", "GIT_AUTHOR_EMAIL=test@example.com")
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to commit: %v", err)
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to commit: %v\nOutput: %s", err, string(output))
 	}
 
 	// Create second commit
@@ -511,15 +530,17 @@ func TestGetUnpushedCommits(t *testing.T) {
 
 	cmd = exec.Command("git", "add", "test2.txt")
 	cmd.Dir = tempDir
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to add file: %v", err)
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to add file: %v\nOutput: %s", err, string(output))
 	}
 
 	cmd = exec.Command("git", "commit", "-m", "Second commit")
 	cmd.Dir = tempDir
 	cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=Test", "GIT_AUTHOR_EMAIL=test@example.com")
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to commit: %v", err)
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to commit: %v\nOutput: %s", err, string(output))
 	}
 
 	// Test getting unpushed commits (should return all commits since no remote)
@@ -548,8 +569,9 @@ func TestGetUnpushedCommitsNoCommits(t *testing.T) {
 	// Initialize git repository
 	cmd := exec.Command("git", "init")
 	cmd.Dir = tempDir
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to initialize git repository: %v", err)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("Failed to initialize git repository: %v\nOutput: %s", err, string(output))
 	}
 
 	// Test getting unpushed commits with no commits
