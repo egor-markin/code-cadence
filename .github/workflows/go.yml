@@ -13,6 +13,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        fail-fast: false
         os: [ubuntu-latest, macos-latest]
         include:
           - os: ubuntu-latest
