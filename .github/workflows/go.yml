@@ -12,8 +12,8 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        fail-fast: false
         os: [ubuntu-latest, macos-latest]
         include:
           - os: ubuntu-latest
