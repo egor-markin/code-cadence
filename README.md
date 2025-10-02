@@ -106,8 +106,31 @@ Code Cadence looks for `.env` files in this order:
 
 ### Installation Options
 
-1. **Download pre-compiled binary** from the releases section
-2. **Build from source** using Go compiler
+#### Automatic Installation (Recommended)
+
+1. **Install prebuilt Debian package** - For Debian-based Linux distributions (Ubuntu, Debian, etc.)
+
+#### Manual Installation
+
+2. **Download pre-compiled binary** from the [releases](https://github.com/egor-markin/code-cadence/releases) section
+3. **Build from source** using Go compiler
+
+### Automatic Installation: Debian Package
+
+For Debian-based Linux distributions (Ubuntu, Debian, etc.), prebuilt packages are available in the project's [releases](https://github.com/egor-markin/code-cadence/releases) section. These packages are named `code-cadence-x.x.x-amd64.deb` and provide automatic installation:
+
+```bash
+sudo dpkg -i code-cadence-x.x.x-amd64.deb
+```
+
+**What this does automatically:**
+- Places the `code-cadence` executable in `/usr/local/bin/`
+- Creates a default configuration file at `/usr/local/etc/code-cadence/.env` with default configuration values
+- No manual setup required - ready to use immediately
+
+### Manual Installation: Pre-compiled Binaries
+
+If you prefer manual installation or are not using a Debian-based system, download the appropriate pre-compiled binary from the [releases](https://github.com/egor-markin/code-cadence/releases) section and follow the manual setup steps below.
 
 ### Recommended Installation Locations
 
@@ -125,7 +148,7 @@ If you install to `~/bin/` or `/opt/code-cadence/`, add to your shell profile:
 echo 'export PATH="$HOME/bin:$PATH"' >> ~/.bashrc  # (for Linux) or ~/.zshrc (for macOS)
 
 # For /opt/code-cadence/
-echo 'export PATH="/opt/code-cadence:$PATH"' >> ~/.bashrc  # (or Linux) or ~/.zshrc (for macOS)
+echo 'export PATH="/opt/code-cadence:$PATH"' >> ~/.bashrc  # (for Linux) or ~/.zshrc (for macOS)
 ```
 
 ## Important Notes

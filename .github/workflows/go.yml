@@ -1,0 +1,133 @@
+name: Go
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*" ]  # Trigger on version tags
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            name_suffix: linux
+          - os: macos-latest
+            name_suffix: macos
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # Fetch all history for tags
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.x'
+
+      - name: Install dependencies
+        run: go get .
+
+      - name: Build
+        run: go build -v -o code-cadence ./...
+
+      - name: Test
+        run: go test -v ./...
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+            echo "version_clean=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          else
+            echo "version=dev" >> $GITHUB_OUTPUT
+            echo "version_clean=dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Linux DEB package
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          # Install dpkg for DEB package creation
+          sudo apt-get update
+          sudo apt-get install -y dpkg-dev
+          
+          # Create package structure
+          mkdir -p deb-package/usr/local/bin
+          mkdir -p deb-package/usr/local/etc/code-cadence
+          mkdir -p deb-package/DEBIAN
+          
+          # Copy binary
+          cp code-cadence deb-package/usr/local/bin/
+          
+          # Copy env.example as .env in etc directory
+          cp env.example deb-package/usr/local/etc/code-cadence/.env
+          
+          # Create control file for DEB package
+          cat > deb-package/DEBIAN/control << EOF
+          Package: code-cadence
+          Version: ${{ steps.version.outputs.version_clean }}
+          Section: utils
+          Priority: optional
+          Architecture: amd64
+          Maintainer: Egor Markin <egor.markin@gmail.com>
+          Description: Code Cadence application
+            A tool for managing code development workflows.
+          EOF
+          
+          # Create postinst script to set proper permissions
+          cat > deb-package/DEBIAN/postinst << EOF
+          #!/bin/bash
+          chmod +x /usr/local/bin/code-cadence
+          chmod 644 /usr/local/etc/code-cadence/.env
+          EOF
+          chmod +x deb-package/DEBIAN/postinst
+          
+          # Build the DEB package
+          dpkg-deb --build deb-package
+          mkdir -p dist
+          mv deb-package.deb dist/code-cadence-${{ steps.version.outputs.version_clean }}-amd64.deb
+
+      - name: Create macOS ZIP archive
+        if: matrix.os == 'macos-latest'
+        run: |
+          mkdir -p dist
+          zip "dist/code-cadence-macos-${{ steps.version.outputs.version }}.zip" code-cadence
+
+      - name: Create Linux ZIP archive (fallback)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          mkdir -p dist
+          zip "dist/code-cadence-linux-${{ steps.version.outputs.version }}.zip" code-cadence
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-cadence-${{ matrix.name_suffix }}-${{ steps.version.outputs.version }}
+          path: dist/
+          retention-days: 30
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List files for debugging
+        run: find artifacts -type f
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/**/*
+          generate_release_notes: true
