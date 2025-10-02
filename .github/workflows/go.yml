@@ -47,8 +47,10 @@ jobs:
             echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
             echo "version_clean=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
           else
-            echo "version=dev" >> $GITHUB_OUTPUT
-            echo "version_clean=dev" >> $GITHUB_OUTPUT
+            # Use a valid Debian version format for dev builds
+            COMMIT_SHORT=$(git rev-parse --short HEAD)
+            echo "version=dev-${COMMIT_SHORT}" >> $GITHUB_OUTPUT
+            echo "version_clean=0.0.0-dev-${COMMIT_SHORT}" >> $GITHUB_OUTPUT
           fi
 
       - name: Create Linux DEB package
