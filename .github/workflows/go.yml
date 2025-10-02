@@ -94,19 +94,13 @@ jobs:
           # Build the DEB package
           dpkg-deb --build deb-package
           mkdir -p dist
-          mv deb-package.deb dist/code-cadence-${{ steps.version.outputs.version_clean }}-amd64.deb
+          mv deb-package.deb dist/code-cadence-debian-${{ steps.version.outputs.version_clean }}-amd64.deb
 
       - name: Create macOS ZIP archive
         if: matrix.os == 'macos-latest'
         run: |
           mkdir -p dist
           zip "dist/code-cadence-macos-${{ steps.version.outputs.version }}.zip" code-cadence
-
-      - name: Create Linux ZIP archive (fallback)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          mkdir -p dist
-          zip "dist/code-cadence-linux-${{ steps.version.outputs.version }}.zip" code-cadence
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -122,7 +116,7 @@ jobs:
 
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@5
         with:
           path: artifacts
 
