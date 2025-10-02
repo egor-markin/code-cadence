@@ -125,20 +125,30 @@ jobs:
           # Create release directory
           mkdir -p release-files
           
+          echo "Artifacts structure:"
+          find artifacts -type f -name "*.zip" | head -10
+          
           # Process each artifact directory
           for artifact_dir in artifacts/*/; do
             if [ -d "$artifact_dir" ]; then
-              # Extract any zip files in the artifact directory
-              find "$artifact_dir" -name "*.zip" -exec unzip -o {} -d "$artifact_dir" \;
-              find "$artifact_dir" -name "*.zip" -delete
+              echo "Processing artifact directory: $artifact_dir"
               
-              # Copy .deb files directly to release-files
+              # Find and extract the main artifact zip file
+              artifact_zip=$(find "$artifact_dir" -maxdepth 1 -name "*.zip" | head -1)
+              if [ -n "$artifact_zip" ]; then
+                echo "Extracting: $artifact_zip"
+                unzip -o "$artifact_zip" -d "$artifact_dir"
+                rm "$artifact_zip"
+              fi
+              
+              # Copy .deb files directly to release-files (no additional zipping)
               find "$artifact_dir" -name "*.deb" -exec cp {} release-files/ \;
               
               # Create zip archives for non-deb files
               for file in "$artifact_dir"*; do
                 if [ -f "$file" ] && [[ ! "$file" == *.deb ]]; then
                   filename=$(basename "$file")
+                  echo "Zipping: $file -> release-files/${filename%.*}.zip"
                   zip "release-files/${filename%.*}.zip" "$file"
                 fi
               done
@@ -146,11 +156,13 @@ jobs:
           done
           
           # List final release files
-          echo "Release files:"
+          echo "Final release files:"
           ls -la release-files/
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: release-files/*
+          files: |
+            release-files/*.deb
+            release-files/*.zip
           generate_release_notes: true
