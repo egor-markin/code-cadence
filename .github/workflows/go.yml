@@ -94,18 +94,18 @@ jobs:
           # Build the DEB package
           dpkg-deb --build deb-package
           mkdir -p dist
-          mv deb-package.deb dist/code-cadence-debian-${{ steps.version.outputs.version_clean }}-amd64.deb
+          mv deb-package.deb dist/code-cadence-debian-amd64-${{ steps.version.outputs.version_clean }}.deb
 
       - name: Prepare macOS binary
         if: matrix.os == 'macos-latest'
         run: |
           mkdir -p dist
-          cp code-cadence dist/code-cadence-macos-${{ steps.version.outputs.version }}
+          cp code-cadence dist/
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: code-cadence-${{ matrix.name_suffix }}-${{ steps.version.outputs.version }}
+          name: ${{ matrix.os == 'ubuntu-latest' && format('code-cadence-debian-amd64-{0}.deb', steps.version.outputs.version_clean) || format('code-cadence-{0}-{1}', matrix.name_suffix, steps.version.outputs.version) }}
           path: dist/
           retention-days: 30
 
