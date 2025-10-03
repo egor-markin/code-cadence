@@ -156,7 +156,7 @@ func (th *TestHelper) CreateTestCommits(repoPath string, count int, baseTime tim
 	for i := 0; i < count; i++ {
 		filename := filepath.Join(repoPath, fmt.Sprintf("file%d.txt", i))
 
-		content := fmt.Sprintf("Test content %d", i)
+		content := fmt.Sprintf("Test content %d - unique content for commit %d", i, i)
 		message := fmt.Sprintf("Test commit %d", i)
 
 		// Create file

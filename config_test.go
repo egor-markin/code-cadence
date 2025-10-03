@@ -10,7 +10,7 @@ func TestConfigurationLoading(t *testing.T) {
 	// Save original environment
 	originalEnv := make(map[string]string)
 	envVars := []string{
-		"WORK_DAY_START_HOUR", "WORK_DAY_END_HOUR", "JITTER_MINUTES",
+		"WORK_DAY_START_HOUR", "WORK_DAY_END_HOUR", "JITTER_MINUTES", "JITTER_DAYS",
 		"PARENT_GIT_BRANCH_NAME", "NEW_COMMIT_AUTHOR_NAME", "NEW_COMMIT_AUTHOR_EMAIL",
 		"CREATE_BACKUP", "SKIP_WEEK_DAYS",
 	}
@@ -20,13 +20,27 @@ func TestConfigurationLoading(t *testing.T) {
 		os.Unsetenv(envVar)
 	}
 
-	// Temporarily rename .env file to prevent it from being loaded
+	// Temporarily rename .env files to prevent them from being loaded
 	envBackup := ".env.backup"
+	systemEnvBackup := "/usr/local/etc/code-cadence/.env.backup"
+	envExists := false
+	systemEnvExists := false
+
 	if _, err := os.Stat(".env"); err == nil {
-		os.Rename(".env", envBackup)
+		envExists = true
+		if err := os.Rename(".env", envBackup); err != nil {
+			t.Fatalf("Failed to rename .env file: %v", err)
+		}
 	}
 
-	// Restore environment and .env file after test
+	if _, err := os.Stat("/usr/local/etc/code-cadence/.env"); err == nil {
+		systemEnvExists = true
+		if err := os.Rename("/usr/local/etc/code-cadence/.env", systemEnvBackup); err != nil {
+			t.Fatalf("Failed to rename system .env file: %v", err)
+		}
+	}
+
+	// Restore environment and .env files after test
 	defer func() {
 		for _, envVar := range envVars {
 			if val, exists := originalEnv[envVar]; exists {
@@ -35,9 +49,16 @@ func TestConfigurationLoading(t *testing.T) {
 				os.Unsetenv(envVar)
 			}
 		}
-		// Restore .env file
-		if _, err := os.Stat(envBackup); err == nil {
-			os.Rename(envBackup, ".env")
+		// Restore .env files
+		if envExists {
+			if err := os.Rename(envBackup, ".env"); err != nil {
+				t.Logf("Failed to restore .env file: %v", err)
+			}
+		}
+		if systemEnvExists {
+			if err := os.Rename(systemEnvBackup, "/usr/local/etc/code-cadence/.env"); err != nil {
+				t.Logf("Failed to restore system .env file: %v", err)
+			}
 		}
 	}()
 
@@ -86,7 +107,7 @@ func TestConfigurationWithCustomValues(t *testing.T) {
 	// Save original environment
 	originalEnv := make(map[string]string)
 	envVars := []string{
-		"WORK_DAY_START_HOUR", "WORK_DAY_END_HOUR", "JITTER_MINUTES",
+		"WORK_DAY_START_HOUR", "WORK_DAY_END_HOUR", "JITTER_MINUTES", "JITTER_DAYS",
 		"PARENT_GIT_BRANCH_NAME", "NEW_COMMIT_AUTHOR_NAME", "NEW_COMMIT_AUTHOR_EMAIL",
 		"CREATE_BACKUP", "SKIP_WEEK_DAYS",
 	}
@@ -96,13 +117,27 @@ func TestConfigurationWithCustomValues(t *testing.T) {
 		os.Unsetenv(envVar)
 	}
 
-	// Temporarily rename .env file to prevent it from being loaded
+	// Temporarily rename .env files to prevent them from being loaded
 	envBackup := ".env.backup"
+	systemEnvBackup := "/usr/local/etc/code-cadence/.env.backup"
+	envExists := false
+	systemEnvExists := false
+
 	if _, err := os.Stat(".env"); err == nil {
-		os.Rename(".env", envBackup)
+		envExists = true
+		if err := os.Rename(".env", envBackup); err != nil {
+			t.Fatalf("Failed to rename .env file: %v", err)
+		}
 	}
 
-	// Restore environment and .env file after test
+	if _, err := os.Stat("/usr/local/etc/code-cadence/.env"); err == nil {
+		systemEnvExists = true
+		if err := os.Rename("/usr/local/etc/code-cadence/.env", systemEnvBackup); err != nil {
+			t.Fatalf("Failed to rename system .env file: %v", err)
+		}
+	}
+
+	// Restore environment and .env files after test
 	defer func() {
 		for _, envVar := range envVars {
 			if val, exists := originalEnv[envVar]; exists {
@@ -111,9 +146,16 @@ func TestConfigurationWithCustomValues(t *testing.T) {
 				os.Unsetenv(envVar)
 			}
 		}
-		// Restore .env file
-		if _, err := os.Stat(envBackup); err == nil {
-			os.Rename(envBackup, ".env")
+		// Restore .env files
+		if envExists {
+			if err := os.Rename(envBackup, ".env"); err != nil {
+				t.Logf("Failed to restore .env file: %v", err)
+			}
+		}
+		if systemEnvExists {
+			if err := os.Rename(systemEnvBackup, "/usr/local/etc/code-cadence/.env"); err != nil {
+				t.Logf("Failed to restore system .env file: %v", err)
+			}
 		}
 	}()
 
@@ -175,7 +217,7 @@ func TestConfigurationWithInvalidValues(t *testing.T) {
 	// Save original environment
 	originalEnv := make(map[string]string)
 	envVars := []string{
-		"WORK_DAY_START_HOUR", "WORK_DAY_END_HOUR", "JITTER_MINUTES",
+		"WORK_DAY_START_HOUR", "WORK_DAY_END_HOUR", "JITTER_MINUTES", "JITTER_DAYS",
 		"PARENT_GIT_BRANCH_NAME", "NEW_COMMIT_AUTHOR_NAME", "NEW_COMMIT_AUTHOR_EMAIL",
 		"CREATE_BACKUP", "SKIP_WEEK_DAYS",
 	}
@@ -185,13 +227,27 @@ func TestConfigurationWithInvalidValues(t *testing.T) {
 		os.Unsetenv(envVar)
 	}
 
-	// Temporarily rename .env file to prevent it from being loaded
+	// Temporarily rename .env files to prevent them from being loaded
 	envBackup := ".env.backup"
+	systemEnvBackup := "/usr/local/etc/code-cadence/.env.backup"
+	envExists := false
+	systemEnvExists := false
+
 	if _, err := os.Stat(".env"); err == nil {
-		os.Rename(".env", envBackup)
+		envExists = true
+		if err := os.Rename(".env", envBackup); err != nil {
+			t.Fatalf("Failed to rename .env file: %v", err)
+		}
 	}
 
-	// Restore environment and .env file after test
+	if _, err := os.Stat("/usr/local/etc/code-cadence/.env"); err == nil {
+		systemEnvExists = true
+		if err := os.Rename("/usr/local/etc/code-cadence/.env", systemEnvBackup); err != nil {
+			t.Fatalf("Failed to rename system .env file: %v", err)
+		}
+	}
+
+	// Restore environment and .env files after test
 	defer func() {
 		for _, envVar := range envVars {
 			if val, exists := originalEnv[envVar]; exists {
@@ -200,9 +256,16 @@ func TestConfigurationWithInvalidValues(t *testing.T) {
 				os.Unsetenv(envVar)
 			}
 		}
-		// Restore .env file
-		if _, err := os.Stat(envBackup); err == nil {
-			os.Rename(envBackup, ".env")
+		// Restore .env files
+		if envExists {
+			if err := os.Rename(envBackup, ".env"); err != nil {
+				t.Logf("Failed to restore .env file: %v", err)
+			}
+		}
+		if systemEnvExists {
+			if err := os.Rename(systemEnvBackup, "/usr/local/etc/code-cadence/.env"); err != nil {
+				t.Logf("Failed to restore system .env file: %v", err)
+			}
 		}
 	}()
 
@@ -234,7 +297,7 @@ func TestConfigurationJitterMinutesValidation(t *testing.T) {
 	// Save original environment
 	originalEnv := make(map[string]string)
 	envVars := []string{
-		"WORK_DAY_START_HOUR", "WORK_DAY_END_HOUR", "JITTER_MINUTES",
+		"WORK_DAY_START_HOUR", "WORK_DAY_END_HOUR", "JITTER_MINUTES", "JITTER_DAYS",
 		"PARENT_GIT_BRANCH_NAME", "NEW_COMMIT_AUTHOR_NAME", "NEW_COMMIT_AUTHOR_EMAIL",
 		"CREATE_BACKUP", "SKIP_WEEK_DAYS",
 	}
@@ -244,13 +307,27 @@ func TestConfigurationJitterMinutesValidation(t *testing.T) {
 		os.Unsetenv(envVar)
 	}
 
-	// Temporarily rename .env file to prevent it from being loaded
+	// Temporarily rename .env files to prevent them from being loaded
 	envBackup := ".env.backup"
+	systemEnvBackup := "/usr/local/etc/code-cadence/.env.backup"
+	envExists := false
+	systemEnvExists := false
+
 	if _, err := os.Stat(".env"); err == nil {
-		os.Rename(".env", envBackup)
+		envExists = true
+		if err := os.Rename(".env", envBackup); err != nil {
+			t.Fatalf("Failed to rename .env file: %v", err)
+		}
 	}
 
-	// Restore environment and .env file after test
+	if _, err := os.Stat("/usr/local/etc/code-cadence/.env"); err == nil {
+		systemEnvExists = true
+		if err := os.Rename("/usr/local/etc/code-cadence/.env", systemEnvBackup); err != nil {
+			t.Fatalf("Failed to rename system .env file: %v", err)
+		}
+	}
+
+	// Restore environment and .env files after test
 	defer func() {
 		for _, envVar := range envVars {
 			if val, exists := originalEnv[envVar]; exists {
@@ -259,9 +336,16 @@ func TestConfigurationJitterMinutesValidation(t *testing.T) {
 				os.Unsetenv(envVar)
 			}
 		}
-		// Restore .env file
-		if _, err := os.Stat(envBackup); err == nil {
-			os.Rename(envBackup, ".env")
+		// Restore .env files
+		if envExists {
+			if err := os.Rename(envBackup, ".env"); err != nil {
+				t.Logf("Failed to restore .env file: %v", err)
+			}
+		}
+		if systemEnvExists {
+			if err := os.Rename(systemEnvBackup, "/usr/local/etc/code-cadence/.env"); err != nil {
+				t.Logf("Failed to restore system .env file: %v", err)
+			}
 		}
 	}()
 
@@ -304,13 +388,27 @@ func TestConfigurationJitterDaysValidation(t *testing.T) {
 		os.Unsetenv(envVar)
 	}
 
-	// Temporarily rename .env file to prevent it from being loaded
+	// Temporarily rename .env files to prevent them from being loaded
 	envBackup := ".env.backup"
+	systemEnvBackup := "/usr/local/etc/code-cadence/.env.backup"
+	envExists := false
+	systemEnvExists := false
+
 	if _, err := os.Stat(".env"); err == nil {
-		os.Rename(".env", envBackup)
+		envExists = true
+		if err := os.Rename(".env", envBackup); err != nil {
+			t.Fatalf("Failed to rename .env file: %v", err)
+		}
 	}
 
-	// Restore environment and .env file after test
+	if _, err := os.Stat("/usr/local/etc/code-cadence/.env"); err == nil {
+		systemEnvExists = true
+		if err := os.Rename("/usr/local/etc/code-cadence/.env", systemEnvBackup); err != nil {
+			t.Fatalf("Failed to rename system .env file: %v", err)
+		}
+	}
+
+	// Restore environment and .env files after test
 	defer func() {
 		for _, envVar := range envVars {
 			if val, exists := originalEnv[envVar]; exists {
@@ -319,9 +417,16 @@ func TestConfigurationJitterDaysValidation(t *testing.T) {
 				os.Unsetenv(envVar)
 			}
 		}
-		// Restore .env file
-		if _, err := os.Stat(envBackup); err == nil {
-			os.Rename(envBackup, ".env")
+		// Restore .env files
+		if envExists {
+			if err := os.Rename(envBackup, ".env"); err != nil {
+				t.Logf("Failed to restore .env file: %v", err)
+			}
+		}
+		if systemEnvExists {
+			if err := os.Rename(systemEnvBackup, "/usr/local/etc/code-cadence/.env"); err != nil {
+				t.Logf("Failed to restore system .env file: %v", err)
+			}
 		}
 	}()
 
@@ -354,7 +459,7 @@ func TestConfigurationSkipWeekDaysVariations(t *testing.T) {
 	// Save original environment
 	originalEnv := make(map[string]string)
 	envVars := []string{
-		"WORK_DAY_START_HOUR", "WORK_DAY_END_HOUR", "JITTER_MINUTES",
+		"WORK_DAY_START_HOUR", "WORK_DAY_END_HOUR", "JITTER_MINUTES", "JITTER_DAYS",
 		"PARENT_GIT_BRANCH_NAME", "NEW_COMMIT_AUTHOR_NAME", "NEW_COMMIT_AUTHOR_EMAIL",
 		"CREATE_BACKUP", "SKIP_WEEK_DAYS",
 	}
@@ -364,13 +469,27 @@ func TestConfigurationSkipWeekDaysVariations(t *testing.T) {
 		os.Unsetenv(envVar)
 	}
 
-	// Temporarily rename .env file to prevent it from being loaded
+	// Temporarily rename .env files to prevent them from being loaded
 	envBackup := ".env.backup"
+	systemEnvBackup := "/usr/local/etc/code-cadence/.env.backup"
+	envExists := false
+	systemEnvExists := false
+
 	if _, err := os.Stat(".env"); err == nil {
-		os.Rename(".env", envBackup)
+		envExists = true
+		if err := os.Rename(".env", envBackup); err != nil {
+			t.Fatalf("Failed to rename .env file: %v", err)
+		}
 	}
 
-	// Restore environment and .env file after test
+	if _, err := os.Stat("/usr/local/etc/code-cadence/.env"); err == nil {
+		systemEnvExists = true
+		if err := os.Rename("/usr/local/etc/code-cadence/.env", systemEnvBackup); err != nil {
+			t.Fatalf("Failed to rename system .env file: %v", err)
+		}
+	}
+
+	// Restore environment and .env files after test
 	defer func() {
 		for _, envVar := range envVars {
 			if val, exists := originalEnv[envVar]; exists {
@@ -379,9 +498,16 @@ func TestConfigurationSkipWeekDaysVariations(t *testing.T) {
 				os.Unsetenv(envVar)
 			}
 		}
-		// Restore .env file
-		if _, err := os.Stat(envBackup); err == nil {
-			os.Rename(envBackup, ".env")
+		// Restore .env files
+		if envExists {
+			if err := os.Rename(envBackup, ".env"); err != nil {
+				t.Logf("Failed to restore .env file: %v", err)
+			}
+		}
+		if systemEnvExists {
+			if err := os.Rename(systemEnvBackup, "/usr/local/etc/code-cadence/.env"); err != nil {
+				t.Logf("Failed to restore system .env file: %v", err)
+			}
 		}
 	}()
 
@@ -472,7 +598,7 @@ func TestConfigurationWorkDayHoursValidation(t *testing.T) {
 	// Save original environment
 	originalEnv := make(map[string]string)
 	envVars := []string{
-		"WORK_DAY_START_HOUR", "WORK_DAY_END_HOUR", "JITTER_MINUTES",
+		"WORK_DAY_START_HOUR", "WORK_DAY_END_HOUR", "JITTER_MINUTES", "JITTER_DAYS",
 		"PARENT_GIT_BRANCH_NAME", "NEW_COMMIT_AUTHOR_NAME", "NEW_COMMIT_AUTHOR_EMAIL",
 		"CREATE_BACKUP", "SKIP_WEEK_DAYS",
 	}
@@ -482,13 +608,27 @@ func TestConfigurationWorkDayHoursValidation(t *testing.T) {
 		os.Unsetenv(envVar)
 	}
 
-	// Temporarily rename .env file to prevent it from being loaded
+	// Temporarily rename .env files to prevent them from being loaded
 	envBackup := ".env.backup"
+	systemEnvBackup := "/usr/local/etc/code-cadence/.env.backup"
+	envExists := false
+	systemEnvExists := false
+
 	if _, err := os.Stat(".env"); err == nil {
-		os.Rename(".env", envBackup)
+		envExists = true
+		if err := os.Rename(".env", envBackup); err != nil {
+			t.Fatalf("Failed to rename .env file: %v", err)
+		}
 	}
 
-	// Restore environment and .env file after test
+	if _, err := os.Stat("/usr/local/etc/code-cadence/.env"); err == nil {
+		systemEnvExists = true
+		if err := os.Rename("/usr/local/etc/code-cadence/.env", systemEnvBackup); err != nil {
+			t.Fatalf("Failed to rename system .env file: %v", err)
+		}
+	}
+
+	// Restore environment and .env files after test
 	defer func() {
 		for _, envVar := range envVars {
 			if val, exists := originalEnv[envVar]; exists {
@@ -497,9 +637,16 @@ func TestConfigurationWorkDayHoursValidation(t *testing.T) {
 				os.Unsetenv(envVar)
 			}
 		}
-		// Restore .env file
-		if _, err := os.Stat(envBackup); err == nil {
-			os.Rename(envBackup, ".env")
+		// Restore .env files
+		if envExists {
+			if err := os.Rename(envBackup, ".env"); err != nil {
+				t.Logf("Failed to restore .env file: %v", err)
+			}
+		}
+		if systemEnvExists {
+			if err := os.Rename(systemEnvBackup, "/usr/local/etc/code-cadence/.env"); err != nil {
+				t.Logf("Failed to restore system .env file: %v", err)
+			}
 		}
 	}()
 
@@ -544,7 +691,7 @@ func TestConfigurationBooleanValues(t *testing.T) {
 	// Save original environment
 	originalEnv := make(map[string]string)
 	envVars := []string{
-		"WORK_DAY_START_HOUR", "WORK_DAY_END_HOUR", "JITTER_MINUTES",
+		"WORK_DAY_START_HOUR", "WORK_DAY_END_HOUR", "JITTER_MINUTES", "JITTER_DAYS",
 		"PARENT_GIT_BRANCH_NAME", "NEW_COMMIT_AUTHOR_NAME", "NEW_COMMIT_AUTHOR_EMAIL",
 		"CREATE_BACKUP", "SKIP_WEEK_DAYS",
 	}
@@ -554,13 +701,27 @@ func TestConfigurationBooleanValues(t *testing.T) {
 		os.Unsetenv(envVar)
 	}
 
-	// Temporarily rename .env file to prevent it from being loaded
+	// Temporarily rename .env files to prevent them from being loaded
 	envBackup := ".env.backup"
+	systemEnvBackup := "/usr/local/etc/code-cadence/.env.backup"
+	envExists := false
+	systemEnvExists := false
+
 	if _, err := os.Stat(".env"); err == nil {
-		os.Rename(".env", envBackup)
+		envExists = true
+		if err := os.Rename(".env", envBackup); err != nil {
+			t.Fatalf("Failed to rename .env file: %v", err)
+		}
 	}
 
-	// Restore environment and .env file after test
+	if _, err := os.Stat("/usr/local/etc/code-cadence/.env"); err == nil {
+		systemEnvExists = true
+		if err := os.Rename("/usr/local/etc/code-cadence/.env", systemEnvBackup); err != nil {
+			t.Fatalf("Failed to rename system .env file: %v", err)
+		}
+	}
+
+	// Restore environment and .env files after test
 	defer func() {
 		for _, envVar := range envVars {
 			if val, exists := originalEnv[envVar]; exists {
@@ -569,9 +730,16 @@ func TestConfigurationBooleanValues(t *testing.T) {
 				os.Unsetenv(envVar)
 			}
 		}
-		// Restore .env file
-		if _, err := os.Stat(envBackup); err == nil {
-			os.Rename(envBackup, ".env")
+		// Restore .env files
+		if envExists {
+			if err := os.Rename(envBackup, ".env"); err != nil {
+				t.Logf("Failed to restore .env file: %v", err)
+			}
+		}
+		if systemEnvExists {
+			if err := os.Rename(systemEnvBackup, "/usr/local/etc/code-cadence/.env"); err != nil {
+				t.Logf("Failed to restore system .env file: %v", err)
+			}
 		}
 	}()
 
@@ -613,7 +781,7 @@ func TestConfigurationStringValues(t *testing.T) {
 	// Save original environment
 	originalEnv := make(map[string]string)
 	envVars := []string{
-		"WORK_DAY_START_HOUR", "WORK_DAY_END_HOUR", "JITTER_MINUTES",
+		"WORK_DAY_START_HOUR", "WORK_DAY_END_HOUR", "JITTER_MINUTES", "JITTER_DAYS",
 		"PARENT_GIT_BRANCH_NAME", "NEW_COMMIT_AUTHOR_NAME", "NEW_COMMIT_AUTHOR_EMAIL",
 		"CREATE_BACKUP", "SKIP_WEEK_DAYS",
 	}
@@ -623,13 +791,27 @@ func TestConfigurationStringValues(t *testing.T) {
 		os.Unsetenv(envVar)
 	}
 
-	// Temporarily rename .env file to prevent it from being loaded
+	// Temporarily rename .env files to prevent them from being loaded
 	envBackup := ".env.backup"
+	systemEnvBackup := "/usr/local/etc/code-cadence/.env.backup"
+	envExists := false
+	systemEnvExists := false
+
 	if _, err := os.Stat(".env"); err == nil {
-		os.Rename(".env", envBackup)
+		envExists = true
+		if err := os.Rename(".env", envBackup); err != nil {
+			t.Fatalf("Failed to rename .env file: %v", err)
+		}
 	}
 
-	// Restore environment and .env file after test
+	if _, err := os.Stat("/usr/local/etc/code-cadence/.env"); err == nil {
+		systemEnvExists = true
+		if err := os.Rename("/usr/local/etc/code-cadence/.env", systemEnvBackup); err != nil {
+			t.Fatalf("Failed to rename system .env file: %v", err)
+		}
+	}
+
+	// Restore environment and .env files after test
 	defer func() {
 		for _, envVar := range envVars {
 			if val, exists := originalEnv[envVar]; exists {
@@ -638,9 +820,16 @@ func TestConfigurationStringValues(t *testing.T) {
 				os.Unsetenv(envVar)
 			}
 		}
-		// Restore .env file
-		if _, err := os.Stat(envBackup); err == nil {
-			os.Rename(envBackup, ".env")
+		// Restore .env files
+		if envExists {
+			if err := os.Rename(envBackup, ".env"); err != nil {
+				t.Logf("Failed to restore .env file: %v", err)
+			}
+		}
+		if systemEnvExists {
+			if err := os.Rename(systemEnvBackup, "/usr/local/etc/code-cadence/.env"); err != nil {
+				t.Logf("Failed to restore system .env file: %v", err)
+			}
 		}
 	}()
 

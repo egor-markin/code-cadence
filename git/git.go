@@ -239,6 +239,98 @@ func GetParentCommit(repoPath string, firstUnpushedCommitHash string) (string, e
 	return parentHash, nil
 }
 
+// GetLastPushedCommit gets the last pushed commit for a repository
+func GetLastPushedCommit(repoPath string, parentGitBranchName string) (*Commit, error) {
+	// Get the current branch
+	branchOutput, err := runGitCommand(repoPath, "branch", "--show-current")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get current branch: %w", err)
+	}
+	currentBranch := strings.TrimSpace(branchOutput)
+
+	if currentBranch == "" {
+		// Probably in detached HEAD state or no commits yet
+		return nil, nil
+	}
+
+	// First check if there are any commits at all
+	if _, err := runGitCommand(repoPath, "rev-parse", "HEAD"); err != nil {
+		// No commits in the repository
+		return nil, nil
+	}
+
+	// Check if the current branch has an upstream tracking branch
+	upstreamOutput, err := runGitCommand(repoPath, "rev-parse", "--abbrev-ref", fmt.Sprintf("%s@{upstream}", currentBranch))
+
+	if err != nil {
+		// No upstream branch configured, check if there are any remotes
+		remotesOutput, remotesErr := runGitCommand(repoPath, "remote")
+
+		if remotesErr != nil || strings.TrimSpace(remotesOutput) == "" {
+			// No remotes configured; no pushed commits
+			return nil, nil
+		}
+
+		// There are remotes but no upstream branch, try different strategies to find last pushed commit
+
+		// Strategy 1: Check against origin/<branch> if it exists
+		if _, originErr := runGitCommand(repoPath, "rev-parse", "--verify", fmt.Sprintf("origin/%s", currentBranch)); originErr == nil {
+			// origin/<branch> exists, get the last commit on it
+			output, err := runGitCommand(repoPath, "log", "-1", "--pretty=format:%H|%s|%an|%ae|%ad|%P", "--date=format:%Y-%m-%d %H:%M:%S %z", fmt.Sprintf("origin/%s", currentBranch))
+			if err != nil {
+				return nil, nil
+			}
+			commits := parseCommitsWithMergeInfo(output)
+			if len(commits) > 0 {
+				return &commits[0], nil
+			}
+			return nil, nil
+		}
+
+		// Strategy 2: Check against any remote branches that match current branch name
+		remotesList := strings.Fields(strings.TrimSpace(remotesOutput))
+		for _, remote := range remotesList {
+			if _, remoteBranchErr := runGitCommand(repoPath, "rev-parse", "--verify", fmt.Sprintf("%s/%s", remote, currentBranch)); remoteBranchErr == nil {
+				// Found matching remote branch, get the last commit on it
+				output, err := runGitCommand(repoPath, "log", "-1", "--pretty=format:%H|%s|%an|%ae|%ad|%P", "--date=format:%Y-%m-%d %H:%M:%S %z", fmt.Sprintf("%s/%s", remote, currentBranch))
+				if err != nil {
+					continue
+				}
+				commits := parseCommitsWithMergeInfo(output)
+				if len(commits) > 0 {
+					return &commits[0], nil
+				}
+			}
+		}
+
+		// Strategy 3: Try against parent branch
+		output, err := runGitCommand(repoPath, "log", "-1", "--pretty=format:%H|%s|%an|%ae|%ad|%P", "--date=format:%Y-%m-%d %H:%M:%S %z", parentGitBranchName)
+		if err == nil {
+			commits := parseCommitsWithMergeInfo(output)
+			if len(commits) > 0 {
+				return &commits[0], nil
+			}
+		}
+
+		// No pushed commits found
+		return nil, nil
+	}
+
+	// Upstream branch exists, get the last commit on it
+	upstream := strings.TrimSpace(upstreamOutput)
+	output, err := runGitCommand(repoPath, "log", "-1", "--pretty=format:%H|%s|%an|%ae|%ad|%P", "--date=format:%Y-%m-%d %H:%M:%S %z", upstream)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get last pushed commit: %w", err)
+	}
+
+	commits := parseCommitsWithMergeInfo(output)
+	if len(commits) > 0 {
+		return &commits[0], nil
+	}
+
+	return nil, nil
+}
+
 // GetCurrentBranch gets the current branch name for the repository
 func GetCurrentBranch(repoPath string) (string, error) {
 	// Get the current branch
@@ -353,8 +445,31 @@ func UpdateCommitTimes(repoPath string, commits []Commit, newTimes []time.Time, 
 			// This ensures merge commits maintain chronological order with the rewrite branch
 		} else {
 			// Handle regular commits by cherry-picking
-			if _, err := runGitCommand(repoPath, "cherry-pick", commit.Hash); err != nil {
-				return successfulUpdates, fmt.Errorf("failed to cherry-pick commit %s: %w", commit.Hash, err)
+			// Try cherry-pick first
+			_, err := runGitCommand(repoPath, "cherry-pick", commit.Hash)
+			if err != nil {
+				// Check if we're in a cherry-pick state by looking at git status
+				status, statusErr := runGitCommand(repoPath, "status")
+				if statusErr == nil && strings.Contains(status, "cherry-picking") {
+					// We're in a cherry-pick state, try to continue
+					_, continueErr := runGitCommand(repoPath, "cherry-pick", "--continue")
+					if continueErr != nil {
+						// If continue fails, try to skip the commit
+						_, skipErr := runGitCommand(repoPath, "cherry-pick", "--skip")
+						if skipErr != nil {
+							// If skip also fails, abort and try with --allow-empty
+							runGitCommand(repoPath, "cherry-pick", "--abort")
+							if _, allowEmptyErr := runGitCommand(repoPath, "cherry-pick", "--allow-empty", commit.Hash); allowEmptyErr != nil {
+								return successfulUpdates, fmt.Errorf("failed to cherry-pick commit %s: %w", commit.Hash, err)
+							}
+						}
+					}
+				} else {
+					// Not in cherry-pick state, try with --allow-empty
+					if _, allowEmptyErr := runGitCommand(repoPath, "cherry-pick", "--allow-empty", commit.Hash); allowEmptyErr != nil {
+						return successfulUpdates, fmt.Errorf("failed to cherry-pick commit %s: %w", commit.Hash, err)
+					}
+				}
 			}
 		}
 

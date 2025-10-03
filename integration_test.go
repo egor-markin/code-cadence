@@ -377,7 +377,7 @@ func TestIntegrationCommitTimeGeneration(t *testing.T) {
 
 	// Test single commit
 	day := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
-	times := generateCommitTimesForDay(day, 1)
+	times := generateCommitTimesForDay(day, 1, nil)
 
 	if len(times) != 1 {
 		t.Errorf("Expected 1 time, got %d", len(times))
@@ -391,7 +391,7 @@ func TestIntegrationCommitTimeGeneration(t *testing.T) {
 	}
 
 	// Test multiple commits
-	times = generateCommitTimesForDay(day, 3)
+	times = generateCommitTimesForDay(day, 3, nil)
 
 	if len(times) != 3 {
 		t.Errorf("Expected 3 times, got %d", len(times))

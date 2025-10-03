@@ -604,7 +604,7 @@ func TestGenerateCommitTimesForDay(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result := generateCommitTimesForDay(day, test.commitCount)
+			result := generateCommitTimesForDay(day, test.commitCount, nil)
 
 			if len(result) != test.expected {
 				t.Errorf("Expected %d times, got %d", test.expected, len(result))
@@ -647,7 +647,7 @@ func TestGenerateCommitTimesForDayWithJitter(t *testing.T) {
 	day := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 
 	// Test with jitter enabled
-	result := generateCommitTimesForDay(day, 3)
+	result := generateCommitTimesForDay(day, 3, nil)
 
 	if len(result) != 3 {
 		t.Errorf("Expected 3 times, got %d", len(result))
@@ -686,7 +686,7 @@ func TestGenerateCommitTimesForDayEdgeCases(t *testing.T) {
 	WorkDayStartHour = 12
 	WorkDayEndHour = 13
 
-	result := generateCommitTimesForDay(day, 2)
+	result := generateCommitTimesForDay(day, 2, nil)
 
 	if len(result) != 2 {
 		t.Errorf("Expected 2 times, got %d", len(result))
@@ -705,7 +705,7 @@ func TestGenerateCommitTimesForDayEdgeCases(t *testing.T) {
 	WorkDayStartHour = 12
 	WorkDayEndHour = 12
 
-	result = generateCommitTimesForDay(day, 1)
+	result = generateCommitTimesForDay(day, 1, nil)
 
 	if len(result) != 1 {
 		t.Errorf("Expected 1 time, got %d", len(result))
@@ -768,6 +768,6 @@ func BenchmarkGenerateCommitTimesForDay(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		generateCommitTimesForDay(day, commitCount)
+		generateCommitTimesForDay(day, commitCount, nil)
 	}
 }

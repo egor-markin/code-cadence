@@ -489,7 +489,7 @@ func commitCadence(gitRepos []string) {
 			}
 
 			// Generate new commit times for this specific day
-			newTimes := generateCommitTimesForDay(day, len(reversedCommits))
+			newTimes := generateCommitTimesForDay(day, len(reversedCommits), nil)
 
 			// Add to the collection for batch processing
 			allCommits = append(allCommits, reversedCommits...)
@@ -528,13 +528,27 @@ func commitCadence(gitRepos []string) {
 }
 
 // generateCommitTimesForDay creates evenly distributed times across work day for a specific day
-func generateCommitTimesForDay(day time.Time, commitCount int) []time.Time {
+func generateCommitTimesForDay(day time.Time, commitCount int, earliestTime *time.Time) []time.Time {
 	if commitCount <= 0 {
 		return []time.Time{}
 	}
 
 	workDayStart := time.Date(day.Year(), day.Month(), day.Day(), WorkDayStartHour, 0, 0, 0, day.Location())
 	workDayEnd := time.Date(day.Year(), day.Month(), day.Day(), WorkDayEndHour, 0, 0, 0, day.Location())
+
+	// If earliestTime is provided, use it as the minimum start time
+	if earliestTime != nil && earliestTime.After(workDayStart) {
+		workDayStart = *earliestTime
+	}
+
+	// For current day, ensure workDayEnd doesn't exceed current time
+	now := time.Now()
+	if day.Year() == now.Year() && day.Month() == now.Month() && day.Day() == now.Day() {
+		if workDayEnd.After(now) {
+			workDayEnd = now
+		}
+	}
+
 	workDayDuration := workDayEnd.Sub(workDayStart)
 
 	times := make([]time.Time, commitCount)
@@ -561,7 +575,7 @@ func generateCommitTimesForDay(day time.Time, commitCount int) []time.Time {
 		}
 	}
 
-	// Ensure all times are within work hours
+	// Ensure all times are within work hours and after earliestTime
 	for i, timeVal := range times {
 		if timeVal.Before(workDayStart) {
 			times[i] = workDayStart
@@ -836,6 +850,15 @@ func commitCadenceSpan(gitRepos []string) {
 		var allCommits []git.Commit
 		var allNewTimes []time.Time
 
+		// Get the last pushed commit to use as earliest time for the first day
+		var lastPushedCommit *git.Commit
+		if len(days) > 0 {
+			lastPushedCommit, err = git.GetLastPushedCommit(repo, ParentGitBranchName)
+			if err != nil {
+				fmt.Printf("   ⚠️  Warning: Could not get last pushed commit: %v\n", err)
+			}
+		}
+
 		cursor := 0
 		for i, day := range days {
 			k := alloc[i]
@@ -845,7 +868,16 @@ func commitCadenceSpan(gitRepos []string) {
 			sub := ordered[cursor : cursor+k]
 			cursor += k
 
-			newTimes := generateCommitTimesForDay(day, len(sub))
+			// For the first day, use the last pushed commit time as earliest time
+			var earliestTime *time.Time
+			if i == 0 && lastPushedCommit != nil {
+				lastPushedTime, err := time.Parse("2006-01-02 15:04:05 -0700", lastPushedCommit.DateTime)
+				if err == nil {
+					earliestTime = &lastPushedTime
+				}
+			}
+
+			newTimes := generateCommitTimesForDay(day, len(sub), earliestTime)
 
 			fmt.Printf("   📅 %s (%d commits):\n", day.Format("2006-01-02"), len(sub))
 			for j := range sub {
