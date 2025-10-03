@@ -18,8 +18,13 @@ jobs:
         include:
           - os: ubuntu-latest
             name_suffix: linux
+            build_type: deb
+          - os: ubuntu-latest
+            name_suffix: linux-binary
+            build_type: binary
           - os: macos-latest
             name_suffix: macos
+            build_type: binary
 
     steps:
       - uses: actions/checkout@v5
@@ -54,7 +59,7 @@ jobs:
           fi
 
       - name: Create Linux DEB package
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' && matrix.build_type == 'deb'
         run: |
           # Install dpkg for DEB package creation
           sudo apt-get update
@@ -96,6 +101,12 @@ jobs:
           mkdir -p dist
           mv deb-package.deb dist/code-cadence-debian-amd64-${{ steps.version.outputs.version_clean }}.deb
 
+      - name: Prepare Linux binary
+        if: matrix.os == 'ubuntu-latest' && matrix.build_type == 'binary'
+        run: |
+          mkdir -p dist
+          cp code-cadence dist/
+
       - name: Prepare macOS binary
         if: matrix.os == 'macos-latest'
         run: |
@@ -105,7 +116,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os == 'ubuntu-latest' && format('code-cadence-debian-amd64-{0}.deb', steps.version.outputs.version_clean) || format('code-cadence-{0}-{1}', matrix.name_suffix, steps.version.outputs.version) }}
+          name: ${{ matrix.build_type == 'deb' && format('code-cadence-debian-amd64-{0}.deb', steps.version.outputs.version_clean) || format('code-cadence-{0}-{1}', matrix.name_suffix, steps.version.outputs.version) }}
           path: dist/
           retention-days: 30
 
@@ -115,10 +126,12 @@ jobs:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
 
     steps:
-      - name: Download macOS artifacts
+      - name: Download artifacts
         uses: actions/download-artifact@5
         with:
-          name: code-cadence-macos-*
+          name: |
+            code-cadence-macos-*
+            code-cadence-linux-binary-*
           path: artifacts
 
       - name: Create Release
