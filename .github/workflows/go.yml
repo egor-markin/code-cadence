@@ -125,7 +125,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.build_type == 'deb' && format('code-cadence-debian-amd64-{0}.deb', steps.version.outputs.version_clean) || format('code-cadence-{0}-{1}', matrix.name_suffix, steps.version.outputs.version) }}
+          name: ${{ format('code-cadence-{0}-{1}', matrix.name_suffix, steps.version.outputs.version) }}
           path: dist/
           retention-days: 30
 
@@ -141,8 +141,8 @@ jobs:
           name: |
             code-cadence-macos-arm64-*
             code-cadence-macos-amd64-*
+            code-cadence-linux-amd64-deb-*
             code-cadence-linux-amd64-*
-            code-cadence-debian-amd64-*
           path: artifacts
 
       - name: Create Release
