@@ -108,7 +108,7 @@ jobs:
           # Build the DEB package
           dpkg-deb --build deb-package
           mkdir -p dist
-          mv deb-package.deb dist/code-cadence-debian-amd64-${{ steps.version.outputs.version_clean }}.deb
+          mv deb-package.deb dist/code-cadence-linux-amd64-deb-${{ steps.version.outputs.version_clean }}.deb
 
       - name: Prepare Linux binary
         if: matrix.os == 'ubuntu-latest' && matrix.build_type == 'binary'
