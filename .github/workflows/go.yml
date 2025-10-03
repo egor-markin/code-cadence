@@ -16,14 +16,19 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            name_suffix: linux
+            name_suffix: linux-amd64-deb
             build_type: deb
           - os: ubuntu-latest
-            name_suffix: linux-binary
+            name_suffix: linux-amd64
             build_type: binary
           - os: macos-latest
-            name_suffix: macos
+            name_suffix: macos-arm64
             build_type: binary
+            goarch: arm64
+          - os: macos-latest
+            name_suffix: macos-amd64
+            build_type: binary
+            goarch: amd64
 
     steps:
       - uses: actions/checkout@v5
@@ -42,7 +47,12 @@ jobs:
         run: go test -v ./...
 
       - name: Build
-        run: go build -v -o code-cadence .
+        run: |
+          if [ "${{ matrix.os }}" = "macos-latest" ]; then
+            GOARCH=${{ matrix.goarch }} go build -v -o code-cadence .
+          else
+            go build -v -o code-cadence .
+          fi
 
       - name: Determine version
         id: version
@@ -129,8 +139,10 @@ jobs:
         uses: actions/download-artifact@5
         with:
           name: |
-            code-cadence-macos-*
-            code-cadence-linux-binary-*
+            code-cadence-macos-arm64-*
+            code-cadence-macos-amd64-*
+            code-cadence-linux-amd64-*
+            code-cadence-debian-amd64-*
           path: artifacts
 
       - name: Create Release
