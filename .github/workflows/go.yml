@@ -14,7 +14,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
         include:
           - os: ubuntu-latest
             name_suffix: linux
@@ -39,11 +38,11 @@ jobs:
       - name: Install dependencies
         run: go get .
 
-      - name: Build
-        run: go build -v -o code-cadence .
-
       - name: Test
         run: go test -v ./...
+
+      - name: Build
+        run: go build -v -o code-cadence .
 
       - name: Determine version
         id: version
